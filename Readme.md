@@ -208,7 +208,7 @@ vivado% bootgen -image plbram_256k_dbg.bif -arch zynqmp -w -o ../plbram_256k_dbg
 vivado% cd ..
 ```
 
-### Compress plbram_256k_dbg.bin to plbram_256k_dbg.gz
+### Compress plbram_256k_dbg.bin to plbram_256k_dbg.bin.gz
 
 ```console
 vivado% gzip plbram_256k_dbg.bin
