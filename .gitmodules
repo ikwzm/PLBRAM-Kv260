@@ -1,0 +1,3 @@
+[submodule "uiomem"]
+	path = uiomem
+	url = https://github.com/ikwzm/uiomem
