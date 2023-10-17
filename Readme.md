@@ -14,6 +14,10 @@ This Repository provides example for uiomem and ZynqMP-FPGA-Linux.
  * uiomem (v1.0.0-alpha.4) https://github.com/ikwzm/uiomem/tree/v1.0.0-alpha.4
  * fclkcfg (v1.7.3) https://github.com/ikwzm/fclkcfg/tree/v1.7.3
 
+## Block Design
+
+![Figure 1. Block Design](./plbram_256k_dbg.png "Figure 1. Block Design")
+
 ## Boot Kv260 and login fpga user
 
 fpga'password is "fpga".
