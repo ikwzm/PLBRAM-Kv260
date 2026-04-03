@@ -1,3 +1,6 @@
 [submodule "uiomem"]
 	path = uiomem
 	url = https://github.com/ikwzm/uiomem
+[submodule "uiomem-test"]
+	path = uiomem-test
+	url = http://github.com/ikwzm/uiomem-test.git

@@ -11,7 +11,9 @@ This Repository provides example for uiomem and ZynqMP-FPGA-Linux.
      + v1.2.0 https://github.com/ikwzm/ZynqMP-FPGA-Ubuntu22.04-Desktop/tree/v1.2.0
    - ZynqMP-FPGA-Debian12
      + v1.0.0 https://github.com/ikwzm/ZynqMP-FPGA-Debian12/tree/v1.0.0
- * uiomem (v1.0.0-alpha.4) https://github.com/ikwzm/uiomem/tree/v1.0.0-alpha.4
+   - ZynqMP-FPGA-Debian13
+     + v3.1.0 https://github.com/ikwzm/ZynqMP-FPGA-Debian13/tree/v3.1.0
+ * uiomem (v1.1.0-beta.1) https://github.com/ikwzm/uiomem/tree/1.1.0-beta.1
  * fclkcfg (v1.7.3) https://github.com/ikwzm/fclkcfg/tree/v1.7.3
 
 ## Block Design
@@ -47,23 +49,48 @@ fpga@debian-fpga:~/work$ cd PLBRAM-Kv260
 
 ## Setup
 
-### Build uiomem
+### Build uiomem and uiomem-test
+
+#### Update submodules
 
 ```console
 fpga@debian-fpga:~/work/PLBRAM-Kv260$ git submodule init
 Submodule 'uiomem' (https://github.com/ikwzm/uiomem) registered for path 'uiomem'
+Submodule 'uiomem-test' (http://github.com/ikwzm/uiomem-test.git) registered for path 'uiomem-test'
 fpga@debian-fpga:~/work/PLBRAM-Kv260$ git submodule update
-Cloning into '/home/fpga/work/PLBRAM-Kv260/uiomem'...
-Submodule path 'uiomem': checked out '960ea869e8b282a5f68123b9a2d7e1f3c52b5f11'
+Cloning into '/home/fpga/work/tmp/PLBRAM-Kv260/uiomem'...
+Cloning into '/home/fpga/work/tmp/PLBRAM-Kv260/uiomem-test'...
+warning: redirecting to https://github.com/ikwzm/uiomem-test.git/
+Submodule path 'uiomem': checked out 'd9ddd8035832ea77b4cbfec69d3a4aac5893dc14'
+Submodule path 'uiomem-test': checked out '9023c48045d853cc6b6202859dd00848f7949dbc'
+```
+
+#### Build uiomem kenrel module
+
+```console
 fpga@debian-fpga:~/work/PLBRAM-Kv260$ cd uiomem
 fpga@debian-fpga:~/work/PLBRAM-Kv260/uiomem$ make
-make -C /lib/modules/6.1.57-zynqmp-fpga-trial/build ARCH=arm64 CROSS_COMPILE= M=/home/fpga/work/PLBRAM-Kv260/uiomem CONFIG_UIOMEM=m modules
-make[1]: Entering directory '/usr/src/linux-headers-6.1.57-zynqmp-fpga-trial'
-  CC [M]  /home/fpga/work/PLBRAM-Kv260/uiomem/uiomem.o
-  MODPOST /home/fpga/work/PLBRAM-Kv260/uiomem/Module.symvers
-  CC [M]  /home/fpga/work/PLBRAM-Kv260/uiomem/uiomem.mod.o
-  LD [M]  /home/fpga/work/PLBRAM-Kv260/uiomem/uiomem.ko
-make[1]: Leaving directory '/usr/src/linux-headers-6.1.57-zynqmp-fpga-trial'
+make -C /lib/modules/6.12.60-zynqmp-fpga-generic/build ARCH=arm64 CROSS_COMPILE= M=/home/fpga/work/tmp/PLBRAM-Kv260/uiomem CONFIG_UIOMEM=m modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.60-zynqmp-fpga-generic'
+warning: the compiler differs from the one used to build the kernel
+  The kernel was built by: aarch64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+  You are using:           gcc (Debian 14.2.0-19) 14.2.0
+  CC [M]  /home/fpga/work/tmp/PLBRAM-Kv260/uiomem/uiomem.o
+  MODPOST /home/fpga/work/tmp/PLBRAM-Kv260/uiomem/Module.symvers
+  CC [M]  /home/fpga/work/tmp/PLBRAM-Kv260/uiomem/uiomem.mod.o
+  CC [M]  /home/fpga/work/tmp/PLBRAM-Kv260/uiomem/.module-common.o
+  LD [M]  /home/fpga/work/tmp/PLBRAM-Kv260/uiomem/uiomem.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.60-zynqmp-fpga-generic'
+fpga@debian-fpga:~/work/PLBRAM-Kv260/uiomem$ cd ..
+```
+
+#### Build uiomem test programs
+
+```console
+fpga@debian-fpga:~/work/PLBRAM-Kv260$ cd uiomem-test
+gcc -O2 -DUSE_UIOMEM_IOCTL -o uiomem-file-test uiomem-file-test.c uiomem.c
+gcc -O2 -DUSE_UIOMEM_IOCTL -o uiomem-ioctl-test uiomem-ioctl-test.c
+gcc -O2 -DUSE_UIOMEM_IOCTL -o uiomem-throughput-test uiomem-throughput-test.c uiomem.c
 fpga@debian-fpga:~/work/PLBRAM-Kv260/uiomem$ cd ..
 ```
 
@@ -84,61 +111,87 @@ gzip -d -f -c plbram_256k_dbg.bin.gz > /lib/firmware/plbram_256k_dbg.bin
 ```
 
 ```console
-fpga@debian-fpga:~/work/PLBRAM-Kv260$ dmesg | tail -16
-[ 3045.853809] fpga_manager fpga0: writing plbram_256k_dbg.bin to Xilinx ZynqMP FPGA Manager
-[ 3045.992810] OF: overlay: WARNING: memory leak will occur if overlay removed, property: /fpga-full/firmware-name
-[ 3046.008892] fclkcfg amba_pl@0:fclk0: driver version : 1.7.3
-[ 3046.008910] fclkcfg amba_pl@0:fclk0: device name    : amba_pl@0:fclk0
-[ 3046.008915] fclkcfg amba_pl@0:fclk0: clock  name    : pl0_ref
-[ 3046.008920] fclkcfg amba_pl@0:fclk0: clock  rate    : 99999999
-[ 3046.008946] fclkcfg amba_pl@0:fclk0: clock  enabled : 1
-[ 3046.008951] fclkcfg amba_pl@0:fclk0: remove rate    : 1000000
-[ 3046.008957] fclkcfg amba_pl@0:fclk0: remove enable  : 0
-[ 3046.008962] fclkcfg amba_pl@0:fclk0: driver installed.
-[ 3046.009862] uiomem uiomem0: driver version = 1.0.0-alpha.4
-[ 3046.009876] uiomem uiomem0: major number   = 237
-[ 3046.009882] uiomem uiomem0: minor number   = 0
-[ 3046.009887] uiomem uiomem0: range address  = 0x0000000400000000
-[ 3046.009893] uiomem uiomem0: range size     = 262144
-[ 3046.009899] uiomem 400000000.uiomem_plbram: driver installed.
+fpga@debian-fpga:~/work/PLBRAM-Kv260$ dmesg | tail -21
+[ 1462.228582] fpga_manager fpga0: writing plbram_256k_dbg.bin to Xilinx ZynqMP FPGA Manager
+[ 1464.263186] OF: overlay: WARNING: memory leak will occur if overlay removed, property: /fpga-region/firmware-name
+[ 1464.275493] uiomem uiomem0: driver version = 1.1.0-beta.1
+[ 1464.280916] uiomem uiomem0: ioctl version  = 1
+[ 1464.285414] uiomem uiomem0: major number   = 236
+[ 1464.290084] uiomem uiomem0: minor number   = 0
+[ 1464.294544] uiomem uiomem0: range address  = 0x0000000400000000
+[ 1464.300468] uiomem uiomem0: range size     = 262144
+[ 1464.305350] uiomem uiomem0: cached         = 1
+[ 1464.309798] uiomem uiomem0: coherent       = 0
+[ 1464.314244] uiomem uiomem0: sync_operation = ARM64 Native
+[ 1464.319648] uiomem uiomem0: shareable      = 0
+[ 1464.324116] uiomem 400000000.uiomem_plbram: driver installed.
+[ 1464.398800] fclkcfg axi:fclk0: driver version : 1.9.1
+[ 1464.403895] fclkcfg axi:fclk0: device name    : axi:fclk0
+[ 1464.409300] fclkcfg axi:fclk0: clock  name    : pl0_ref
+[ 1464.414533] fclkcfg axi:fclk0: clock  rate    : 99999999
+[ 1464.419937] fclkcfg axi:fclk0: clock  enabled : 1
+[ 1464.424647] fclkcfg axi:fclk0: remove rate    : 1000000
+[ 1464.429878] fclkcfg axi:fclk0: remove enable  : 0
+[ 1464.434588] fclkcfg axi:fclk0: driver installed.
 ```
 
-### Build plbram_test
+## Run uiomem-file-test
 
 ```console
-fpga@debian-fpga:~/work/PLBRAM-Kv260$ rake plbram_test
-gcc  -o plbram_test plbram_test.c
-```
-
-## Run plbram_test
-
-```console
-fpga@debian-fpga:~/examples/PLBRAM-Ultra96$ ./plbram_test
-ize=262144
-mmap write test : sync=1 time=0.000570 sec (0.000569 sec)
-mmap read  test : sync=1 time=0.002787 sec (0.002786 sec)
+fpga@debian-fpga:~/work/PLBRAM-Kv260$ sudo ./uiomem-test/uiomem-file-test
+device=uiomem0
+driver_version=1.1.0-beta.1
+sync_operation=ARM64 Native
+ioctl_version=1
+size=262144
+shareable=0
+cached=1
+coherent=0
+mmap write test : sync=1 time=0.000542 sec (0.000542 sec)
+mmap read  test : sync=1 time=0.002514 sec (0.002514 sec)
 compare = ok
-mmap write test : sync=0 time=0.000447 sec (0.000245 sec)
-mmap read  test : sync=1 time=0.002847 sec (0.002847 sec)
+mmap write test : sync=0 time=0.000494 sec (0.000242 sec)
+mmap read  test : sync=1 time=0.002254 sec (0.002254 sec)
 compare = ok
 mmap write test : sync=1 time=0.000545 sec (0.000545 sec)
-mmap read  test : sync=0 time=0.000346 sec (0.000296 sec)
+mmap read  test : sync=0 time=0.000336 sec (0.000295 sec)
 compare = ok
-mmap write test : sync=0 time=0.000426 sec (0.000216 sec)
-mmap read  test : sync=0 time=0.000335 sec (0.000297 sec)
+mmap write test : sync=0 time=0.000444 sec (0.000203 sec)
+mmap read  test : sync=0 time=0.000331 sec (0.000296 sec)
 compare = ok
-file write test : sync=1 time=0.000267 sec (0.000266 sec)
-mmap read  test : sync=0 time=0.000337 sec (0.000296 sec)
+file write test : sync=1 time=0.000275 sec (0.000275 sec)
+mmap read  test : sync=0 time=0.000333 sec (0.000295 sec)
 compare = ok
-file write test : sync=0 time=0.000289 sec (0.000266 sec)
-mmap read  test : sync=0 time=0.000336 sec (0.000297 sec)
+file write test : sync=0 time=0.000287 sec (0.000266 sec)
+mmap read  test : sync=0 time=0.000418 sec (0.000382 sec)
 compare = ok
-mmap write test : sync=0 time=0.000397 sec (0.000198 sec)
-file read  test : sync=1 time=0.000398 sec (0.000398 sec)
+mmap write test : sync=0 time=0.000457 sec (0.000213 sec)
+file read  test : sync=1 time=0.000329 sec (0.000329 sec)
 compare = ok
-mmap write test : sync=0 time=0.000442 sec (0.000232 sec)
-file read  test : sync=0 time=0.000368 sec (0.000331 sec)
+mmap write test : sync=0 time=0.000437 sec (0.000198 sec)
+file read  test : sync=0 time=0.000363 sec (0.000329 sec)
 compare = ok
+```
+
+## Run uiomem-throughput-test
+
+* sync=0: mmap is cacheable, and cache synchronization is performed before and after each access.
+* sync=1: mmap is non-cacheable, and cache synchronization is not performed before or after accesses.
+
+```console
+sudo ./uiomem-test/uiomem-throughput-test
+device=uiomem0
+driver_version=1.1.0-beta.1
+sync_operation=ARM64 Native
+ioctl_version=1
+size=262144
+shareable=0
+cached=1
+coherent=0
+mmap write test : sync=0 throughput=939.2 MBytes/sec
+mmap read  test : sync=0 throughput=787.7 MBytes/sec
+mmap write test : sync=1 throughput=256.4 MBytes/sec
+mmap read  test : sync=1 throughput= 46.7 MBytes/sec
 ```
 
 ## Clean up
@@ -150,8 +203,8 @@ fpga@debian-fpga:~/work/PLBRAM-Kv260$ sudo rake uninstall
 
 ```console
 fpga@debian-fpga:~/work/PLBRAM-Kv260$ dmesg | tail -2
-[ 3402.803798] uiomem 400000000.uiomem_plbram: driver removed.
-[ 3402.806845] fclkcfg amba_pl@0:fclk0: driver removed.
+[ 1757.258747] uiomem 400000000.uiomem_plbram: driver removed.
+[ 1757.268728] fclkcfg axi:fclk0: driver removed.
 ```
 
 ## Build Bitstream file
