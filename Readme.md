@@ -14,7 +14,7 @@ This Repository provides example for uiomem and ZynqMP-FPGA-Linux.
    - ZynqMP-FPGA-Debian13
      + v3.1.0 https://github.com/ikwzm/ZynqMP-FPGA-Debian13/tree/v3.1.0
  * uiomem (v1.1.0-beta.1) https://github.com/ikwzm/uiomem/tree/1.1.0-beta.1
- * fclkcfg (v1.7.3) https://github.com/ikwzm/fclkcfg/tree/v1.7.3
+ * fclkcfg (v1.9.1) https://github.com/ikwzm/fclkcfg/tree/v1.9.1
 
 ## Block Design
 
@@ -88,10 +88,11 @@ fpga@debian-fpga:~/work/PLBRAM-Kv260/uiomem$ cd ..
 
 ```console
 fpga@debian-fpga:~/work/PLBRAM-Kv260$ cd uiomem-test
+fpga@debian-fpga:~/work/PLBRAM-Kv260/uiomem-test$ make
 gcc -O2 -DUSE_UIOMEM_IOCTL -o uiomem-file-test uiomem-file-test.c uiomem.c
 gcc -O2 -DUSE_UIOMEM_IOCTL -o uiomem-ioctl-test uiomem-ioctl-test.c
 gcc -O2 -DUSE_UIOMEM_IOCTL -o uiomem-throughput-test uiomem-throughput-test.c uiomem.c
-fpga@debian-fpga:~/work/PLBRAM-Kv260/uiomem$ cd ..
+fpga@debian-fpga:~/work/PLBRAM-Kv260/uiomem-test$ cd ..
 ```
 
 ### Load uiomem
